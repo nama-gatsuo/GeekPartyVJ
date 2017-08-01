@@ -1,58 +1,39 @@
-var twitter = require('twitter');
-var Sender = require('omgosc').UdpSender;
-const hosturl = '0.0.0.0';
-const oscport = 4321;
+'use strict';
 
-var client = new twitter({
+var _twitter = require('twitter');
 
-    consumer_key: 'emGIH5fTaWYpNU8ydhLUp4x7T',
-    consumer_secret: 'me8Pz5t4LLRU5hHd1jIWrJ2hbGynSQbuaFVLFy7rxbX3nhRKoK',
-    access_token_key: '157947766-V2w0vLmfbm3HShfuPvJ1LXY8rVqVfBRtoW9hyOKA',
-    access_token_secret: 'JK6Ltw2n7uX0z3dUh0DY2uEYOatGfoSI2NySAWLMz0L64'
+var _twitter2 = _interopRequireDefault(_twitter);
 
+var _omgosc = require('omgosc');
+
+var _settings = require('./settings');
+
+var _settings2 = _interopRequireDefault(_settings);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var t = _settings2.default.TWI,
+    c = _settings2.default.CLIENT;
+
+var client = new _twitter2.default({
+    consumer_key: t.CONSUMER_KEY,
+    consumer_secret: t.CONSUMER_SECRET,
+    access_token_key: t.ACCESS_TOKEN_KEY,
+    access_token_secret: tI.SCCESS_TOKEN_KEY_SECRET
 });
 
-var sender = new Sender(hosturl, oscport);
+var sender = new _omgosc.UdpSender(c.HOST, c.PORT);
 
 client.stream('statuses/filter', {
-    track: '#Akiparty'
-}, (stream) => {
+    track: 'Akiparty'
+}, function (stream) {
 
-    stream.on('data', (data) => {
-
-        // console.log(data);
+    stream.on('data', function (data) {
 
         console.log('name: ' + data.user.screen_name);
         console.log('text: ' + data.text);
 
-        let s1, s2, s3;
-
-        if (data.text.length <= 50) {
-            s1 = data.text.slice(0, 50);
-            s2 = '';
-            s3 = '';
-        } else if (data.text.length > 50 || data.text.length <= 100) {
-            s1 = data.text.slice(0, 50);
-            s2 = data.text.slice(51, 100);
-            s3 = '';
-        } else if (data.text.length > 100) {
-            s1 = data.text.slice(0, 50);
-            s2 = data.text.slice(51, 100);
-            s3 = data.text.slice(101, 140);
-        }
-
-        sender.send(
-            '/twi_osc',
-            'ssss',
-            [
-                data.user.screen_name,
-                s1,
-                s2,
-                s3
-            ]
-        );
-
+        sender.send('/twi_osc', 'ss', [data.user.screen_name, data.text]);
     });
-
-
 });
+//# sourceMappingURL=stream.js.map

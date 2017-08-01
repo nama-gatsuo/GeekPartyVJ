@@ -9,8 +9,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "encoding": "^0.1.12",
+    "babel-preset-es2015": "^6.24.1",
+    "gulp": "^3.9.1",
+    "gulp-babel": "^6.1.2",
+    "gulp-sourcemaps": "^2.6.0",
     "omgosc": "^1.0.0",
-    "twitter": "^1.3.0"
+    "twitter": "^1.7.1"
   }
 }
