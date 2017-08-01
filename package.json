@@ -1,0 +1,16 @@
+{
+  "name": "twi_osc",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "encoding": "^0.1.12",
+    "omgosc": "^1.0.0",
+    "twitter": "^1.3.0"
+  }
+}
