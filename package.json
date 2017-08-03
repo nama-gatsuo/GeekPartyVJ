@@ -13,6 +13,9 @@
     "gulp": "^3.9.1",
     "gulp-babel": "^6.1.2",
     "gulp-sourcemaps": "^2.6.0",
+    "iconv": "^2.3.0",
+    "jschardet": "^1.5.0",
+    "nodemon": "^1.11.0",
     "omgosc": "^1.0.0",
     "twitter": "^1.7.1"
   }
