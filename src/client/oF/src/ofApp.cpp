@@ -2,41 +2,30 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
-    receiver.setup(PORT);
-    font.load("font/hiragino_mincho_pnw6.ttc", 12, true, true);
+    font.loadFont("font/hiragino_mincho_pnw6.ttc", 12, true, true);
     
     vp.setup(270,  180);
     setupDeferred();
     updateDeferredParam();
     
-    twi[currentTwi] = TweetObj("Ayumu Nagamatsu @ayumu_naga", "ああああああああああ akiparty test ああああああああああ akiparty test ");
+    thread.startThread();
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
     updateDeferredParam();
-    while (receiver.hasWaitingMessages()) {
-        ofxOscMessage msg;
-        receiver.getNextMessage(msg);
+    
+    if (thread.checkNew()) {
+        json = *thread.getJson();
+        string name = json["user"]["name"].asString() + " @" + json["user"]["screen_name"].asString();
+        string text = json["text"].asString();
         
-        string address = msg.getAddress();
+        twi[currentTwi].erase();
+        currentTwi = 1 - currentTwi;
         
-        if (address == "/twi_osc") {
-            string name = msg.getArgAsString(0);
-            string text = msg.getArgAsString(1);
-            
-            cout << "address: " + address << endl;
-            cout << "name: " + name << endl;
-            cout << "text: " + text << endl;
-            
-            twi[currentTwi].erase();
-            currentTwi = 1 - currentTwi;
-            twi[currentTwi] = TweetObj(name, text);
-        }
+        twi[currentTwi] = TweetObj(name, text);
         
     }
-    
-   
 }
 
 //--------------------------------------------------------------
@@ -51,15 +40,16 @@ void ofApp::draw(){
     shadowLightPass->beginShadowMap(true);
     ofCamera sc = shadowLightPass->getCam();
     vp.draw(sc, true);
+    lightingPass->drawLights(sc, true);
     shadowLightPass->endShadowMap();
     
     deferred.begin(cam, true);
     vp.draw(cam, false);
+    lightingPass->drawLights(cam, false);
     deferred.end();
     
-//    vp.debugDraw();
-    
     if (isShow) panel.draw();
+//    vp.debugDraw();
 //    shadowLightPass->debugDraw();
 //    deferred.debugDraw();
 }
@@ -81,13 +71,17 @@ void ofApp::windowResized(int w, int h){
 
 }
 
+void ofApp::exit() {
+    thread.stopThread();
+}
+
 void ofApp::setupDeferred(){
     deferred.init(ofGetWidth(), ofGetHeight());
     ssaoPass = deferred.createPass<SsaoPass>().get();
     
     shadowLightPass = deferred.createPass<ShadowLightPass>().get();
     shadowLightPass->lookAt(ofVec3f(0.0));
-    shadowLightPass->setCam(90, 0.1, 1500);
+    shadowLightPass->setCam(60, 100., 2000);
     shadowLightPass->setPosition(400, 800.0, 100);
     shadowLightPass->lookAt(ofVec3f(0.0));
     
@@ -160,6 +154,8 @@ void ofApp::updateDeferredParam(){
     shadowLightPass->setDiffuseColor(ofFloatColor(sha_dif.get()));
     shadowLightPass->setDarkness(sha_dark.get());
     shadowLightPass->setBlend(sha_blend.get());
+    shadowLightPass->setPosition(1000 * cos(ofGetElapsedTimef()), 1000.0, 1000* sin(ofGetElapsedTimef()));
+    shadowLightPass->lookAt(ofVec3f(0));
     
     dofPass->setFocus(dof_focal.get());
     dofPass->setMaxBlur(dof_blur.get());

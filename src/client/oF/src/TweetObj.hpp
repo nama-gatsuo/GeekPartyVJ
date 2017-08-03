@@ -15,20 +15,19 @@ public:
         int h = 180;
         float fs = 12.;
         
-        // 7 letters x 2 lines
-        if (num < 42) {
-            this->text = splitBySize(text, 21);
-            textSize = 2.0;
+        if (num < 40) {
+            this->text = splitBySize(text, 20);
+            textSize = 1.8;
             textStart = h / 2.;
-        // 7 letters x 3 line2
-        } else if (num < 63) {
-            this->text = splitBySize(text, 21);
-            textSize = 2.0;
+        
+        } else if (num < 60) {
+            this->text = splitBySize(text, 20);
+            textSize = 1.8;
             textStart = h / 2. - fs * textSize;
         
         } else {
-            this->text = splitBySize(text, 50);
-            textSize = 1.0;
+            this->text = splitBySize(text, 30);
+            textSize = 1.2;
             textStart = h / 2. - fs * num / 21. / 2.;
         }
         
@@ -44,7 +43,7 @@ public:
         ofPushMatrix();
         
         ofScale(0.9, 0.9);
-        ofSetColor(1.0 * 255, opacity.get() * 255);
+        ofSetColor(255, opacity.get() * 200);
         font.drawStringAsShapes(name, 4, 28);
         
         ofPopMatrix();
@@ -66,6 +65,7 @@ public:
 private:
     string name;
     vector<string> text;
+    
     bool isLarge;
     float textSize;
     float textStart;

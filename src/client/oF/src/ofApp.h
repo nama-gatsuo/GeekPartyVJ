@@ -1,11 +1,12 @@
 #pragma once
 
 #include "ofMain.h"
-#include "ofxOsc.h"
 #include "ofxTrueTypeFontUC.h"
 #include "ofxDeferredShading.h"
 #include "ofxGui.h"
+#include "ofxJSONElement.h"
 
+#include "ReadJsonThread.hpp"
 #include "CommonUtil.hpp"
 #include "TweetObj.hpp"
 #include "VoxelPanel.hpp"
@@ -24,9 +25,11 @@ public:
     void setupDeferred();
     void updateDeferredParam();
     
+    void exit();
+    
 private:
-    ofxOscReceiver receiver;
-    const unsigned PORT = 4321;
+    ReadJsonThread thread;
+    ofxJSONElement json;
     
     ofxTrueTypeFontUC font;
     VoxelPanel vp;

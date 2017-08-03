@@ -1,7 +1,9 @@
 */.DS_Store
 /node_modules
-*.map
 **/settings.js
+
+*.map
+*.json
 *.ttc
 *.app
 *.mp3

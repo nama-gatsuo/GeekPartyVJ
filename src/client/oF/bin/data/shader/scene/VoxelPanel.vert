@@ -27,13 +27,16 @@ void main(){
 
     vec3 c = texture(tex, vec2(instanceX, instanceY)).rgb;
     float grey = (c.r + c.g + c.b) / 3.;
+    p.y += 2.5;
 
     if (grey < 0.02) {
         grey = 0.02;
-        c = vec3(0.5);
+        c = vec3(0.2);
+    } else {
+        grey += 5.0;
     }
     vec2 offset = vec2(1.0);
-    float height = grey * 30.0;
+    float height = grey * 10.0;
     p.y *= height;
     p.y += abs(p.y) / 2.;
 
