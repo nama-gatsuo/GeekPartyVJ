@@ -2,20 +2,46 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
+    
+    ofSetFrameRate(30);
     font.loadFont("font/hiragino_mincho_pnw6.ttc", 12, true, true);
     
-    vp.setup(270,  180);
+    pe.setup();
+    
+    vp.setup(wSize, hSize, 1.);
     setupDeferred();
     updateDeferredParam();
     
+    client.setup();
+    client.set("", "");
+    
+    camPos.to(cam.getPosition());
+    camLook.to(ofVec3f(0.0));
+    dt.set(1.0);
+    
     thread.startThread();
+    
+    receiver.setup(7401);
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
     updateDeferredParam();
     
-    if (thread.checkNew()) {
+    vp.update(volume.get());
+    
+    lp1.update(dt.get());
+    lp2.update(dt.get());
+    lightingPass->getLightRef(0).position = lp1;
+    lightingPass->getLightRef(1).position = lp2;
+    
+    camPos.update(dt.get());
+    cam.setPosition(camPos);
+    cam.lookAt(camLook);
+    volume.update(dt.get());
+    
+    // check json
+    if (isShowTwi && thread.checkNew()) {
         json = *thread.getJson();
         string name = json["user"]["name"].asString() + " @" + json["user"]["screen_name"].asString();
         string text = json["text"].asString();
@@ -24,51 +50,144 @@ void ofApp::update(){
         currentTwi = 1 - currentTwi;
         
         twi[currentTwi] = TweetObj(name, text);
-        
     }
+    
+    
+    // listen to OSC from Max
+    while (receiver.hasWaitingMessages()) {
+    
+        ofxOscMessage m;
+        receiver.getNextMessage(m);
+        
+        string address = m.getAddress();
+        vector<string> pathes = ofSplitString(address, "/");
+        
+        if (pathes[1] == "bang") {
+            
+            if (pathes[2] == "0") {
+                randomize();
+            } else if (pathes[2] == "1") {
+                
+                float coin = ofRandom(1.);
+                if (coin < 0.5) pe.setMode(0);
+                else if (coin < 0.55) pe.setMode(1);
+                else if (coin < 0.63) pe.setMode(2);
+                
+                coin = ofRandom(1.);
+                if (vp.isExploded()) {
+                    vp.reset();
+                } else if (coin < .1) {
+                    vp.explode();
+                }
+            }
+                
+        } else if (pathes[1] == "vol") {
+            volume.to(m.getArgAsFloat(0)); break;
+        } else if (pathes[1] == "p") {
+            int i = ofToInt(pathes[2]);
+            float val = m.getArgAsInt32(0) / 128.;
+            if (i == 4) {
+                dt.set(0.001 + 2.0 * val);
+            }
+        } else if (pathes[1] == "key") {
+        
+        }
+        
+    
+    }
+    
 }
 
 //--------------------------------------------------------------
 void ofApp::draw(){
     
     vp.begin();
-    ofBackground(0);
-    twi[0].draw(font);
-    twi[1].draw(font);
-    vp.end();
+    // draw something
     
-    shadowLightPass->beginShadowMap(true);
-    ofCamera sc = shadowLightPass->getCam();
-    vp.draw(sc, true);
-    lightingPass->drawLights(sc, true);
-    shadowLightPass->endShadowMap();
+    ofBackground(0);
+    ofEnableBlendMode(OF_BLENDMODE_ADD);
+    
+    if (isShowSyphon) {
+        client.draw(0, 0, wSize, hSize);
+    }
+    
+    if (isShowTwi) {
+        twi[0].draw(font);
+        twi[1].draw(font);
+    }
+    
+    ofDisableBlendMode();
+    vp.end();
     
     deferred.begin(cam, true);
     vp.draw(cam, false);
     lightingPass->drawLights(cam, false);
-    deferred.end();
+    deferred.end(false);
     
-    if (isShow) panel.draw();
+    pe.begin();
+    deferred.draw();
+    pe.end();
+    
+    pe.draw();
+    
+    if (isShowPanel) panel.draw();
 //    vp.debugDraw();
 //    shadowLightPass->debugDraw();
 //    deferred.debugDraw();
+//    ofDrawBitmapString("fps: " + ofToString(ofGetFrameRate()), 10, 40);
 }
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
-    if (key == ' ') {
-        twi[currentTwi].erase();
-        currentTwi = 1 - currentTwi;
-        if (currentTwi == 0) twi[currentTwi] = TweetObj("さのかずや‏ @sanokazuya0306", "はんだづけ道場皆伝 #sano_make http://ift.tt/2v1keyx");
-        else twi[currentTwi] = TweetObj("わたけみ‏ @watakemi725", "どこでセンスを磨いて来た");
-    } else if (key == 's') {
-        isShow = !isShow;
+    switch (key){
+        case ' ': randomize(); break;
+        case 's': isShowPanel = !isShowPanel; break;
+        case '1': isShowTwi = !isShowTwi; break;
+        case '2': isShowSyphon = !isShowSyphon; break;
+        case '3': isShowBulbs = !isShowBulbs; break;
+    }
+}
+
+void ofApp::randomize(){
+    float coin = ofRandom(1.);
+    if (coin < 0.3) {
+        lp1.to(ofPoint(ofRandom(-600, 600), ofRandom(-400, 400), ofRandom(100, 600)));
+        lp2.to(ofPoint(ofRandom(-600, 600), ofRandom(-400, 400), ofRandom(100, 600)));
+    }
+    
+    coin = ofRandom(1.);
+    if (coin < 0.1) {
+        camPos.to(ofPoint(0., 0., 800));
+        camLook.to(ofPoint(0.));
+    } else if (coin < 0.3) {
+        camPos.to(ofPoint(ofRandom(-500, 500), ofRandom(-300, 300), ofRandom(80, 300)));
+        camLook.to(ofPoint(ofRandom(-50, 50), ofRandom(-50, 50), ofRandom(-50, 50)));
+    }
+    
+    coin = ofRandom(1.);
+    if (coin < 0.05) {
+        vp.setDivision(1.0);
+    } else if (coin < 0.2){
+        vp.setDivision(pow(2., floor(ofRandom(4.))));
+    }
+    
+    coin = ofRandom(1.);
+    if (coin < 0.03) {
+        isShowTwi = true;
+        isShowSyphon = false;
+    } else if (coin < 0.06) {
+        isShowTwi = false;
+        isShowSyphon = true;
+    } else if (coin < 0.08) {
+        isShowTwi = true;
+        isShowSyphon = true;
+        //isShowBulbs = !isShowBulbs;
     }
 }
 
 //--------------------------------------------------------------
 void ofApp::windowResized(int w, int h){
-
+    
 }
 
 void ofApp::exit() {
@@ -78,12 +197,6 @@ void ofApp::exit() {
 void ofApp::setupDeferred(){
     deferred.init(ofGetWidth(), ofGetHeight());
     ssaoPass = deferred.createPass<SsaoPass>().get();
-    
-    shadowLightPass = deferred.createPass<ShadowLightPass>().get();
-    shadowLightPass->lookAt(ofVec3f(0.0));
-    shadowLightPass->setCam(60, 100., 2000);
-    shadowLightPass->setPosition(400, 800.0, 100);
-    shadowLightPass->lookAt(ofVec3f(0.0));
     
     lightingPass = deferred.createPass<PointLightPass>().get();
     ofxDeferredShading::PointLight dlight;
@@ -101,30 +214,23 @@ void ofApp::setupDeferred(){
     pl1.setName("Point light 1");
     pl1.add(pl1_pos.set("Position", ofVec3f(500,500,500), ofVec3f(-1000), ofVec3f(1000)));
     pl1.add(pl1_diff.set("Diffuse Color", ofFloatColor(0.4)));
-    pl1.add(pl1_spe.set("Specular Color", ofFloatColor(1.0)));
-    pl1.add(pl1_rad.set("Radius", 500, 100, 1000));
+    pl1.add(pl1_spe.set("Specular Color", ofFloatColor(1.0, 1.0, 0.9)));
+    pl1.add(pl1_rad.set("Radius", 350, 100, 1000));
     pl1.add(pl1_int.set("Intensity", 1.2, 0.1, 3.0));
     panel.add(pl1);
     
     pl2.setName("Point light 2");
     pl2.add(pl2_pos.set("Position", ofVec3f(-600,700,200), ofVec3f(-1000), ofVec3f(1000)));
     pl2.add(pl2_diff.set("Diffuse Color", ofFloatColor(0.4)));
-    pl2.add(pl2_spe.set("Specular Color", ofFloatColor(1.0)));
-    pl2.add(pl2_rad.set("Radius", 500, 100, 2000));
+    pl2.add(pl2_spe.set("Specular Color", ofFloatColor(1.0, 1.0, 0.9)));
+    pl2.add(pl2_rad.set("Radius", 350, 100, 2000));
     pl2.add(pl2_int.set("Intensity", 1.2, 0.1, 3.0));
     panel.add(pl2);
     
     ao.setName("Ambient Occlusion");
-    ao.add(ao_rad.set("Occlusion Radius", 5.0, 0.1, 100.0));
-    ao.add(ao_dark.set("Darkness", 0.8, 0.1, 5.0));
+    ao.add(ao_rad.set("Occlusion Radius", 3.6, 0.1, 100.0));
+    ao.add(ao_dark.set("Darkness", 0.3, 0.1, 5.0));
     panel.add(ao);
-    
-    shadow.setName("Shadow Light");
-    shadow.add(sha_amb.set("Ambient", 0.0, 0.0, 1.0));
-    shadow.add(sha_dif.set("Diffuse", 0.0, 0.3, 1.0));
-    shadow.add(sha_dark.set("Shadow Darkness", 0.4, 0.0, 1.0));
-    shadow.add(sha_blend.set("Lighting Blend", 0.4, 0.0, 1.0));
-    panel.add(shadow);
     
     dof.setName("Defocus Blur");
     dof.add(dof_blur.set("Max Blur", 0.5, 0.0, 1.0));
@@ -149,13 +255,6 @@ void ofApp::updateDeferredParam(){
     
     ssaoPass->setOcculusionRadius(ao_rad.get());
     ssaoPass->setDarkness(ao_dark.get());
-    
-    shadowLightPass->setAmbientColor(ofFloatColor(sha_amb.get()));
-    shadowLightPass->setDiffuseColor(ofFloatColor(sha_dif.get()));
-    shadowLightPass->setDarkness(sha_dark.get());
-    shadowLightPass->setBlend(sha_blend.get());
-    shadowLightPass->setPosition(1000 * cos(ofGetElapsedTimef()), 1000.0, 1000* sin(ofGetElapsedTimef()));
-    shadowLightPass->lookAt(ofVec3f(0));
     
     dofPass->setFocus(dof_focal.get());
     dofPass->setMaxBlur(dof_blur.get());

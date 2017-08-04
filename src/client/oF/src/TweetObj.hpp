@@ -17,17 +17,17 @@ public:
         
         if (num < 40) {
             this->text = splitBySize(text, 20);
-            textSize = 1.8;
+            textSize = 1.5;
             textStart = h / 2.;
         
         } else if (num < 60) {
             this->text = splitBySize(text, 20);
-            textSize = 1.8;
+            textSize = 1.5;
             textStart = h / 2. - fs * textSize;
         
         } else {
             this->text = splitBySize(text, 30);
-            textSize = 1.2;
+            textSize = 1.0;
             textStart = h / 2. - fs * num / 21. / 2.;
         }
         
@@ -42,7 +42,7 @@ public:
         ofPushStyle();
         ofPushMatrix();
         
-        ofScale(0.9, 0.9);
+        ofScale(0.8, 0.8);
         ofSetColor(255, opacity.get() * 200);
         font.drawStringAsShapes(name, 4, 28);
         

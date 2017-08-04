@@ -1,4 +1,6 @@
 #version 400
+#pragma include "rand.glslinc.frag"
+
 uniform mat4 modelViewMatrix; // oF Default
 uniform mat4 modelViewProjectionMatrix; // oF Default
 uniform mat4 normalMatrix; // Pass from C++
@@ -11,6 +13,10 @@ uniform float farClip;
 uniform float nearClip;
 
 uniform sampler2DRect tex;
+uniform float vol;
+uniform vec2 size;
+uniform float boxSize;
+uniform float trans;
 
 out vec4 vPosition;
 out float vDepth;
@@ -20,28 +26,35 @@ out vec4 vColor;
 void main(){
     vec4 p = position;
 
-    vec2 size = textureSize(tex);
+    vec2 texSize = textureSize(tex);
 
     float instanceX = mod(gl_InstanceID, size.x);
     float instanceY = floor(gl_InstanceID / size.x);
 
-    vec3 c = texture(tex, vec2(instanceX, instanceY)).rgb;
+    vec2 st = vec2(instanceX, size.y - instanceY) / size * texSize;
+
+    vec3 c = texture(tex, st).rgb;
     float grey = (c.r + c.g + c.b) / 3.;
-    p.y += 2.5;
+    p.z += 2.5;
+
+    float v = clamp(vol, 0.2, 1.) + 0.3;
+    p.x *= v;
+    p.y *= v;
 
     if (grey < 0.02) {
         grey = 0.02;
-        c = vec3(0.2);
-    } else {
-        grey += 5.0;
+        c = vec3(0.05);
     }
-    vec2 offset = vec2(1.0);
-    float height = grey * 10.0;
-    p.y *= height;
-    p.y += abs(p.y) / 2.;
 
-    p.x += (5.0 + offset.x) * (instanceX - size.x * 0.5);
-    p.z += (5.0 + offset.y) * (instanceY - size.y * 0.5);
+    float height = grey * 7.5 + v * 2.;
+    p.z *= height;
+    p.z += abs(p.z) / 2.;
+
+    p.x += (boxSize * 1.1) * (instanceX - size.x * 0.5);
+    p.y += (boxSize * 1.1) * (instanceY - size.y * 0.5);
+
+    vec3 rv = getRandomVector(st) * rand(gl_InstanceID) * 300. * trans;
+    p.xyz += rv;
 
     gl_Position = modelViewProjectionMatrix * p;
 

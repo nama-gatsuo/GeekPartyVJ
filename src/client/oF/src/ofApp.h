@@ -5,11 +5,14 @@
 #include "ofxDeferredShading.h"
 #include "ofxGui.h"
 #include "ofxJSONElement.h"
+#include "ofxSyphon.h"
+#include "ofxOsc.h"
 
 #include "ReadJsonThread.hpp"
 #include "CommonUtil.hpp"
 #include "TweetObj.hpp"
 #include "VoxelPanel.hpp"
+#include "PostEffect.hpp"
 
 using namespace ofxDeferredShading;
 
@@ -22,18 +25,33 @@ public:
     void keyPressed(int key);
     void windowResized(int w, int h);
     
+    void randomize();
+    
     void setupDeferred();
     void updateDeferredParam();
     
     void exit();
     
 private:
+    const int wSize = 200, hSize = 150;
+    
+    bool isShowSyphon = false;
+    bool isShowTwi = false;
+    bool isShowBulbs = false;
+    
+    PostEffect pe;
+    
     ReadJsonThread thread;
     ofxJSONElement json;
-    
     ofxTrueTypeFontUC font;
-    VoxelPanel vp;
     
+    ofxOscReceiver receiver;
+    SmoothValue volume;
+    
+    VoxelPanel vp;
+
+    ofxSyphonClient client;
+
     int currentTwi = 0;
     TweetObj twi[2];
     
@@ -43,15 +61,15 @@ private:
     ofxDeferredProcessing deferred;
     PointLightPass* lightingPass;
     SsaoPass* ssaoPass;
-    ShadowLightPass* shadowLightPass;
     HdrBloomPass* hdrBloomPass;
     DofPass* dofPass;
     
     SmoothPoint lp1, lp2;
     SmoothPoint camPos;
     SmoothPoint camLook;
+    
     // gui
-    bool isShow = false;
+    bool isShowPanel = false;
     ofxPanel panel;
     ofParameterGroup pl1;
     ofParameter<ofVec3f> pl1_pos;
@@ -70,12 +88,6 @@ private:
     ofParameterGroup ao;
     ofParameter<float> ao_rad;
     ofParameter<float> ao_dark;
-    
-    ofParameterGroup shadow;
-    ofParameter<float> sha_amb;
-    ofParameter<float> sha_dif;
-    ofParameter<float> sha_dark;
-    ofParameter<float> sha_blend;
     
     ofParameterGroup dof;
     ofParameter<float> dof_blur;
