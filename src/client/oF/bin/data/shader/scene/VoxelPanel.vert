@@ -37,7 +37,7 @@ void main(){
     float grey = (c.r + c.g + c.b) / 3.;
     p.z += 2.5;
 
-    float v = clamp(vol, 0.2, 1.) + 0.3;
+    float v = clamp(vol, 0.1, 1.) + 0.3;
     p.x *= v;
     p.y *= v;
 
@@ -53,7 +53,7 @@ void main(){
     p.x += (boxSize * 1.1) * (instanceX - size.x * 0.5);
     p.y += (boxSize * 1.1) * (instanceY - size.y * 0.5);
 
-    vec3 rv = getRandomVector(st) * rand(gl_InstanceID) * 300. * trans;
+    vec3 rv = getRandomVector(st) * rand(gl_InstanceID) * 500. * trans;
     p.xyz += rv;
 
     gl_Position = modelViewProjectionMatrix * p;

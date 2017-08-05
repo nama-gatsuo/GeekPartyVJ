@@ -24,8 +24,6 @@ var client = new _twitter2.default({
     access_token_secret: t.ACCESS_TOKEN_KEY_SECRET
 });
 
-//let sender = new UdpSender(c.HOST, c.PORT);
-
 var path = './src/client/oF/bin/data/json/';
 var file = 'twi.json';
 

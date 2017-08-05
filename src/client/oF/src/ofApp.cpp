@@ -74,9 +74,10 @@ void ofApp::update(){
                 else if (coin < 0.63) pe.setMode(2);
                 
                 coin = ofRandom(1.);
-                if (vp.isExploded()) {
+                if (coin < .3 && vp.isExploded()) {
                     vp.reset();
-                } else if (coin < .1) {
+                }
+                if (coin < .05) {
                     vp.explode();
                 }
             }
@@ -165,10 +166,12 @@ void ofApp::randomize(){
     }
     
     coin = ofRandom(1.);
-    if (coin < 0.05) {
+    if (coin < 0.08) {
         vp.setDivision(1.0);
-    } else if (coin < 0.2){
-        vp.setDivision(pow(2., floor(ofRandom(4.))));
+    } else if (coin < 0.09){
+        vp.setDivision(pow(2., floor(ofRandom(1., 4.))));
+    } else if (coin < 0.1){
+        vp.setDivision(pow(2., floor(ofRandom(4., 6.))));
     }
     
     coin = ofRandom(1.);
