@@ -3,7 +3,7 @@
 This is a VJ app which draws:
 * data (letters) in JSON from another apps (which is a node.js server for now)
 * movie inputs from another apps (which is VDMX with syphon output for now)
-and is purely audio-reactive. Sound data is being passed from anotehr apps like Max/MSP. The controller is [this one]().
+and is purely audio-reactive. Sound data is being passed from anotehr apps like Max/MSP. The controller is [this one](https://github.com/nama-gatsuo/SolidSubstanceVJ/tree/master/MaxController).
 
 Server side app is working on local-env to fetch tweet data and rewrite external JSON file.
 
